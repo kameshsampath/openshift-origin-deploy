@@ -268,7 +268,7 @@
     "gituser": "kameshsampath",
     "branch": "master",
     "version": "3.6",
-    "baseTemplateUrl": "[concat('https://raw.githubusercontent.com/',variables('gituser'),'/openshift-origin-deploy/',variables('branch'),'/cloude/azure/',variables('version'),'/')]",
+    "baseTemplateUrl": "[concat('https://raw.githubusercontent.com/',variables('gituser'),'/openshift-origin-deploy/',variables('branch'),'/cloud/azure/',variables('version'),'/')]",
     "baseVMachineTemplateUriInfranode": "[concat(variables('baseTemplateUrl'), 'infranode.json')]",
     "baseVMachineTemplateUriNode": "[concat(variables('baseTemplateUrl'), 'node.json')]",
     "baseVMachineTemplateUriMaster": "[concat(variables('baseTemplateUrl'), 'master.json')]",
