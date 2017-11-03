@@ -666,15 +666,6 @@
           "imageReference": {
             "value": "[variables(parameters('image'))]"
           },
-          "RHNUserName": {
-            "value": "[parameters('RHNUserName')]"
-          },
-          "RHNPassword": {
-            "value": "[parameters('RHNPassword')]"
-          },
-          "SubscriptionPoolId": {
-            "value": "[parameters('SubscriptionPoolId')]"
-          },
           "sshPrivateData": {
             "value": "[parameters('sshPrivateData')]"
           },
@@ -701,12 +692,6 @@
           },
           "aadclientsecret": {
             "value": "[parameters('aadClientSecret')]"
-          },
-          "rhsmmode": {
-            "value": "[parameters('rhsmUsernamePasswordOrActivationKey')]"
-          },
-          "openshiftsdn": {
-            "value": "[parameters('OpenShiftSDN')]"
           },
           "metrics": {
             "value": "[parameters('metrics')]"

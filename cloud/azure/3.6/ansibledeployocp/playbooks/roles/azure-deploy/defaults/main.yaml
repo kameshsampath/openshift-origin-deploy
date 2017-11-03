@@ -1,12 +1,11 @@
 ---
-templatelink: "https://raw.githubusercontent.com/openshift/openshift-ansible-contrib/master/reference-architecture/azure-ansible/3.6/azuredeploy.json"
+templatelink: "https://raw.githubusercontent.com/kameshsampath/openshift-origin-deploy/master/cloud/azure/3.6/single-master-multi-nodes.json"
 numberofnodes: 3
-image: "rhel"
-mastervmsize: "Standard_DS3_v2"
-infranodesize: "Standard_DS3_v2"
-nodevmsize: "Standard_DS12_v2"
-location: "westus"
-openshiftsdn: "redhat/openshift-ovs-multitenant"
-metrics: true
-logging: true
+image: "centos"
+mastervmsize: "Standard_D2_v2"
+infranodesize: "Standard_D2_v2"
+nodevmsize: "Standard_D2_v2"
+location: "southindia"
+metrics: false
+logging: false
 opslogging: false

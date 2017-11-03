@@ -24,22 +24,12 @@
         value: "{{ infranodesize }}"
       nodeVMSize:
         value: "{{ nodevmsize }}"
-      RHNUserName:
-        value: "{{ rhnusername }}"
-      RHNPassword:
-        value: "{{ rhnpassword }}"
-      SubscriptionPoolId:
-        value: "{{ subscriptionpoolid }}"
       sshPrivateData:
         value: "{{ sshprivatedata }}"
       aadClientId:
         value: "{{ aadclientid }}"
       aadClientSecret:
         value: "{{ aadclientsecret }}"
-      rhsmUsernamePasswordOrActivationKey:
-        value: "{{ rhsmusernamepasswordoractivationkey }}"
-      OpenShiftSDN:
-        value: "{{ openshiftsdn }}"
       metrics:
         value: "{{ metrics }}"
       logging:
