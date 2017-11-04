@@ -2,9 +2,9 @@
 templatelink: "https://raw.githubusercontent.com/kameshsampath/openshift-origin-deploy/master/cloud/azure/3.6/onemastermultinodes.json"
 numberofnodes: 3
 image: "centos"
-mastervmsize: "Standard_D3_v2"
-infranodesize: "Standard_D3_v2"
-nodevmsize: "Standard_D3_v2"
+mastervmsize: "Standard_DS4_v2"
+infranodesize: "Standard_DS4_v2"
+nodevmsize: "Standard_DS12_v2"
 location: "southindia"
 metrics: false
 logging: false
