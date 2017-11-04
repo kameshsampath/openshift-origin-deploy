@@ -196,8 +196,8 @@ docker_udev_workaround=True
 openshift_node_debug_level="{{ node_debug_level | default(debug_level, true) }}"
 openshift_master_debug_level="{{ master_debug_level | default(debug_level, true) }}"
 openshift_master_access_token_max_seconds=2419200
-openshift_hosted_router_replicas=3
-openshift_hosted_registry_replicas=3
+openshift_hosted_router_replicas=1
+openshift_hosted_registry_replicas=1
 openshift_master_api_port="{{ console_port }}"
 openshift_master_console_port="{{ console_port }}"
 openshift_override_hostname_check=true
@@ -229,6 +229,8 @@ openshift_master_default_subdomain=${WILDCARDNIP}
 osm_default_subdomain=${WILDCARDNIP}
 openshift_use_dnsmasq=true
 openshift_public_hostname=${RESOURCEGROUP}.${FULLDOMAIN}
+
+os_sdn_network_plugin_name=redhat/openshift-ovs-subnet
 
 openshift_master_cluster_method=native
 openshift_master_cluster_hostname=${RESOURCEGROUP}.${FULLDOMAIN}
@@ -540,13 +542,11 @@ cat > /home/${AUSERNAME}/setup-sso.yml <<EOF
                - email
 
   - service:
-      name: atomic-openshift-master-api
+      name: origin-master
       state: restarted
-      ignore_errors: yes
   - service:
-      name: atomic-openshift-master-controllers
+      name: origin-node
       state: restarted
-      ignore_errors: yes
   - name: Pause for service restart
     pause:
       seconds: 10
