@@ -1,6 +1,6 @@
 #!/bin/bash
 
-yum -y install wget git net-tools bind-utils iptables-services bridge-utils bash-completion
+yum -y install unzip wget git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools
 
 mkdir -p /var/lib/origin/openshift.local.volumes
 ZEROVG=$( parted -m /dev/sda print all 2>/dev/null | grep unknown | grep /dev/sd | cut -d':' -f1 | head -n1)

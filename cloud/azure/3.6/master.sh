@@ -6,7 +6,7 @@ SSHPUBLICDATA=$3
 
 ps -ef | grep master.sh > cmdline.out
 
-yum -y install wget git net-tools bind-utils iptables-services bridge-utils bash-completion
+yum -y install wget unzip git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools
 
 mkdir -p /home/$USERNAME/.ssh
 echo $SSHPUBLICDATA > /home/$USERNAME/.ssh/id_rsa.pub

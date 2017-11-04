@@ -118,10 +118,10 @@ echo "${RESOURCEGROUP} Bastion Host is starting software update"
 # Continue Setting Up Bastion
 yum -y install epel-release
 yum -y update
-yum -y install unzip wget git ansible net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img jq
+yum -y install ansible  pyOpenSSL python-lxml unzip wget git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img jq
 mkdir -p /usr/share/ansible/openshift-ansible && git clone -b release-3.6 https://github.com/openshift/openshift-ansible /usr/share/ansible/openshift-ansible
-wget -qO- https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz | tar xvz --strip-components=1 -C /usr/local/bin
-chmod 755 /usr/local/bin/oc
+wget -qO- https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz | tar xvz --strip-components=1 -C /usr/bin
+chmod 755 /usr/bin/oc
 touch /root/.updateok
 
 # Create azure.conf file
@@ -306,11 +306,11 @@ cat <<EOF >> /home/${AUSERNAME}/prereq.yml
   - name: Install OpenShift CLI
     unarchive:
       src: "https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz"
-      dest: /usr/local/bin
+      dest: /usr/bin
       remote_src: yes
       mode: 0755
       keep_newer: yes
-      creates: /usr/local/bin/oc
+      creates: /usr/bin/oc
       extra_opts: "--strip-components=1"
   - name: Install the docker
     yum: name=docker state=latest
@@ -886,8 +886,6 @@ export SSHPUB=${SSHPUB:-${DEFSSHPUB}}
 export DISKS=("${DISKS[@]:-${DEFDISKS[@]}}")
 
 azure telemetry --disable 1>/dev/null
-echo "Updating atomic-openshift-utils..."
-sudo yum update -y atomic-openshift-utils 1>/dev/null
 login_azure
 BZ1469358
 
@@ -898,7 +896,7 @@ case "$TYPE" in
     export ROLE="app"
     echo "Creating a new node..."
     create_node_azure
-    echo "Adding the node to OCP..."
+    echo "Adding the node to Origin..."
     add_node_openshift
     ;;
   'infranode')
@@ -907,7 +905,7 @@ case "$TYPE" in
     export ROLE="infra"
     echo "Creating a new infranode..."
     create_infranode_azure
-    echo "Adding the node to OCP..."
+    echo "Adding the node to Origin..."
     add_node_openshift
     ;;
   'master')
@@ -916,7 +914,7 @@ case "$TYPE" in
     export ROLE="master"
     echo "Creating a new master..."
     create_master_azure
-    echo "Adding the master to OCP..."
+    echo "Adding the master to Origin..."
     add_master_openshift
     ;;
   *)
@@ -1112,7 +1110,7 @@ host_key_checking = False
 forks=30
 gather_timeout=60
 timeout=240
-library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
+library = /usr/share/ansible/openshift-ansible/library
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
@@ -1127,7 +1125,7 @@ host_key_checking = False
 forks=30
 gather_timeout=60
 timeout=240
-library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
+library = /usr/share/ansible/openshift-ansible/library
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
