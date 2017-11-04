@@ -823,7 +823,7 @@ add_master_openshift(){
 export IPCONFIG="ipconfig1"
 export HOSTCACHING="None"
 export NET="openshiftVnet"
-export IMAGE="RHEL"
+export IMAGE="CENTOS"
 export SACONTAINER="openshiftvmachines"
 export APIPORT="8443"
 export HTTP="80"
@@ -997,8 +997,7 @@ oc adm policy add-cluster-role-to-user cluster-admin ${AUSERNAME}
 # Workaround for BZ1469358
 ansible master1 -b -m fetch -a "src=/etc/origin/master/ca.serial.txt dest=/tmp/ca.serial.txt flat=true"
 ansible masters -b -m copy -a "src=/tmp/ca.serial.txt dest=/etc/origin/master/ca.serial.txt mode=644 owner=root"
-ansible-playbook /home/${AUSERNAME}/setup-sso.yml &> /home/${AUSERNAME}/setup-sso.out
-cat /home/${AUSERNAME}/openshift-install.out | tr -cd [:print:]
+ansible-playbook /home/${AUSERNAME}/setup-sso.yml &> /home/${AUSERNAME}/setup-sso.out 
 touch /root/.openshiftcomplete
 touch /home/${AUSERNAME}/.openshiftcomplete
 EOF
