@@ -282,7 +282,18 @@ do
 openshift_node_labels=\"{'role':'app','zone':'default','logging':'true'}\"" >> /etc/ansible/hosts
 done
 
-cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+cat <<EOF >> /home/${AUSERNAME}/prereq.yml
+---
+- hosts: all
+  vars:
+    description: "Wait for nodes"
+  tasks:
+  - name: wait for .updateok
+    wait_for: path=/root/.updateok
+- hosts: all
+  vars:
+    description: "Install Prerequisite Packages"
+  tasks:
   - name: Install EPEL Release Repo
     yum: name=epel-release state=latest
   - name: install the latest version of PyYAML
@@ -290,7 +301,14 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
   - name: Update all hosts
     yum: name="*" state=latest
   - name: Install OpenShift CLI
-    shell: wget -qO- https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz | tar xvz -C /usr/local/bin
+    unarchive:
+      src: "https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz"
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755
+      keep_newer: yes
+      creates: /usr/local/bin/oc
+      extra_opts: "--strip-components=1"
   - name: Install the docker
     yum: name=docker state=latest
   - name: Start Docker
@@ -755,7 +773,7 @@ add_node_openshift(){
   echo "Preparing the host..."
   ansible new_nodes -m shell -a "curl -s ${GITURL}node.sh | bash -x" >/dev/null
   export ANSIBLE_HOST_KEY_CHECKING=False
-  ansible-playbook -l new_nodes /home/${USER}/subscribe.yml
+  ansible-playbook -l new_nodes /home/${USER}/prereq.yml
   ansible-playbook -l new_nodes -e@vars.yml /home/${USER}/azure-config.yml
   # Scale up
   echo "Scaling up the node..."
@@ -784,7 +802,7 @@ add_master_openshift(){
   ansible localhost -b -m file -a "path=/tmp/key state=absent" >/dev/null
   ansible localhost -b -m file -a "path=/tmp/key.pub state=absent" >/dev/null
   export ANSIBLE_HOST_KEY_CHECKING=False
-  ansible-playbook -l new_masters /home/${USER}/subscribe.yml
+  ansible-playbook -l new_masters /home/${USER}/prereq.yml
   ansible-playbook -l new_masters -e@vars.yml /home/${USER}/azure-config.yml
   echo "Scaling up the master..."
   ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-master/scaleup.yml
@@ -945,7 +963,7 @@ cat <<EOF > /home/${AUSERNAME}/openshift-install.sh
 export ANSIBLE_HOST_KEY_CHECKING=False
 sleep 120
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
-ansible-playbook  /home/${AUSERNAME}/subscribe.yml
+ansible-playbook  /home/${AUSERNAME}/prereq.yml
 ansible-playbook  /home/${AUSERNAME}/azure-config.yml
 echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO" | mail -s "${RESOURCEGROUP} Bastion BYO Install" ${RHNUSERNAME} || true
 ansible-playbook  /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml < /dev/null
