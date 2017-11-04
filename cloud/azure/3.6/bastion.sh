@@ -13,17 +13,17 @@ export SSHPRIVATEDATA=${8}
 export SSHPUBLICDATA=${9}
 export SSHPUBLICDATA2=${10}
 export SSHPUBLICDATA3=${11}
-export REGISTRYSTORAGENAME=${array[9]}
-export REGISTRYKEY=${array[10]}
-export LOCATION=${array[11]}
-export SUBSCRIPTIONID=${array[12]}
-export TENANTID=${array[13]}
-export AADCLIENTID=${array[14]}
-export AADCLIENTSECRET=${array[15]}
-export METRICS=${array[16]}
-export LOGGING=${array[17]}
-export OPSLOGGING=${array[18]}
-export GITURL=${array[19]}
+export REGISTRYSTORAGENAME=${array[11]}
+export REGISTRYKEY=${array[12]}
+export LOCATION=${array[13]}
+export SUBSCRIPTIONID=${array[14]}
+export TENANTID=${array[15]}
+export AADCLIENTID=${array[16]}
+export AADCLIENTSECRET=${array[17]}
+export METRICS=${array[18]}
+export LOGGING=${array[19]}
+export OPSLOGGING=${array[20]}
+export GITURL=${array[21]}
 export FULLDOMAIN=${THEHOSTNAME#*.*}
 export WILDCARDFQDN=${WILDCARDZONE}.${FULLDOMAIN}
 export WILDCARDIP=`dig +short ${WILDCARDFQDN}`
@@ -118,7 +118,10 @@ echo "${RESOURCEGROUP} Bastion Host is starting software update"
 # Continue Setting Up Bastion
 yum -y install epel-release
 yum -y update
-yum -y install wget git ansible net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img jq
+yum -y install unzip wget git ansible net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img jq
+mkdir -p /usr/share/ansible/openshift-ansible && git clone -b release-3.6 https://github.com/openshift/openshift-ansible /usr/share/ansible/openshift-ansible
+wget -qO- https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz | tar xvz --strip-components=1 -C /usr/local/bin
+chmod 755 /usr/local/bin/oc
 touch /root/.updateok
 
 # Create azure.conf file
@@ -965,7 +968,7 @@ sleep 120
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
 ansible-playbook  /home/${AUSERNAME}/prereq.yml
 ansible-playbook  /home/${AUSERNAME}/azure-config.yml
-echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO" | mail -s "${RESOURCEGROUP} Bastion BYO Install" ${RHNUSERNAME} || true
+echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO"
 ansible-playbook  /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml < /dev/null
 
 wget http://master1:8443/api > healtcheck.out
