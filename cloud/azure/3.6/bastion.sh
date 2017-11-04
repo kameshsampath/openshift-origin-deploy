@@ -11,17 +11,19 @@ export NODECOUNT=$6
 export ROUTEREXTIP=$7
 export SSHPRIVATEDATA=${8}
 export SSHPUBLICDATA=${9}
-export REGISTRYSTORAGENAME=${array[10]}
-export REGISTRYKEY=${array[11]}
-export LOCATION=${array[12]}
-export SUBSCRIPTIONID=${array[13]}
-export TENANTID=${array[14]}
-export AADCLIENTID=${array[15]}
-export AADCLIENTSECRET=${array[16]}
-export METRICS=${array[17]}
-export LOGGING=${array[18]}
-export OPSLOGGING=${array[19]}
-export GITURL=${array[20]}
+export SSHPUBLICDATA2=${10}
+export SSHPUBLICDATA3=${11}
+export REGISTRYSTORAGENAME=${array[9]}
+export REGISTRYKEY=${array[10]}
+export LOCATION=${array[11]}
+export SUBSCRIPTIONID=${array[12]}
+export TENANTID=${array[13]}
+export AADCLIENTID=${array[14]}
+export AADCLIENTSECRET=${array[15]}
+export METRICS=${array[16]}
+export LOGGING=${array[17]}
+export OPSLOGGING=${array[18]}
+export GITURL=${array[19]}
 export FULLDOMAIN=${THEHOSTNAME#*.*}
 export WILDCARDFQDN=${WILDCARDZONE}.${FULLDOMAIN}
 export WILDCARDIP=`dig +short ${WILDCARDFQDN}`
@@ -116,7 +118,7 @@ echo "${RESOURCEGROUP} Bastion Host is starting software update"
 # Continue Setting Up Bastion
 yum -y install epel-release
 yum -y update
-yum -y install git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img jq
+yum -y install wget git ansible net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img jq
 touch /root/.updateok
 
 # Create azure.conf file
@@ -202,6 +204,7 @@ openshift_cloudprovider_kind=azure
 openshift_node_local_quota_per_fsgroup=512Mi
 azure_resource_group=${RESOURCEGROUP}
 openshift_install_examples=true
+# Deployment type should be set to origin for origin deployment
 deployment_type=origin
 openshift_deployment_type=origin
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
@@ -287,7 +290,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
   - name: Update all hosts
     yum: name="*" state=latest
   - name: Install OpenShift CLI
-    shell: mkdir -p /usr/local/bin && wget -qO- https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz | tar xvz -C /usr/local/bin
+    shell: wget -qO- https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz | tar xvz -C /usr/local/bin
   - name: Install the docker
     yum: name=docker state=latest
   - name: Start Docker
@@ -518,9 +521,11 @@ cat > /home/${AUSERNAME}/setup-sso.yml <<EOF
   - service:
       name: atomic-openshift-master-api
       state: restarted
+      ignore_errors: yes
   - service:
       name: atomic-openshift-master-controllers
       state: restarted
+      ignore_errors: yes
   - name: Pause for service restart
     pause:
       seconds: 10
@@ -959,7 +964,6 @@ mkdir /home/${AUSERNAME}/.kube
 cp /tmp/kube-config /home/${AUSERNAME}/.kube/config
 chown --recursive ${AUSERNAME} /home/${AUSERNAME}/.kube
 rm -f /tmp/kube-config
-yum -y install atomic-openshift-clients
 echo "setup registry for azure"
 oc env dc docker-registry -e REGISTRY_STORAGE=azure -e REGISTRY_STORAGE_AZURE_ACCOUNTNAME=$REGISTRYSTORAGENAME -e REGISTRY_STORAGE_AZURE_ACCOUNTKEY=$REGISTRYKEY -e REGISTRY_STORAGE_AZURE_CONTAINER=registry
 oc patch dc registry-console -p '{"spec":{"template":{"spec":{"nodeSelector":{"role":"infra"}}}}}'

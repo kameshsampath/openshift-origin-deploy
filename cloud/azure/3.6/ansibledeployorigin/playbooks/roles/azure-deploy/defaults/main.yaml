@@ -1,5 +1,5 @@
 ---
-templatelink: "https://raw.githubusercontent.com/kameshsampath/openshift-origin-deploy/master/cloud/azure/3.6/single-master-multi-nodes.json"
+templatelink: "https://raw.githubusercontent.com/kameshsampath/openshift-origin-deploy/master/cloud/azure/3.6/onemastermultinodes.json"
 numberofnodes: 3
 image: "centos"
 mastervmsize: "Standard_D2_v2"
