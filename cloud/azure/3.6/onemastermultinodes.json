@@ -858,10 +858,6 @@
     "Bastion ssh": {
       "type": "string",
       "value": "[concat('ssh -A ', reference('bastion').outputs.fqdn.value)]"
-    },
-    "Openshift Router Public IP": {
-      "type": "string",
-      "value": "[reference(parameters('WildcardZone')).ipAddress]"
     }
   }
 }

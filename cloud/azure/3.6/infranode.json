@@ -238,5 +238,10 @@
       }
     }
   ],
-  "outputs": {}
+  "outputs": {
+    "Openshift Router Public IP": {
+      "type": "string",
+      "value": "[reference(parameters('WildcardZone')).ipAddress]"
+    }
+  }
 }
