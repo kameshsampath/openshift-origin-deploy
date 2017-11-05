@@ -46,14 +46,13 @@
       "metadata": {
         "description": "availabilityset"
       }
-    },
-    "pipName": {
-      "type": "string"
     }
   },
   "variables": {
     "apiVersion": "2015-06-15",
-    "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]"
+    "apiVersionNetwork": "2016-03-30",
+    "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
+    "masterPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', resourceGroup().name)]"
   },
   "resources": [
     {
@@ -75,7 +74,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "publicIPAddress": {
-                "id": "[parameters('pipName')]"
+                "id": "[variables('masterPublicIpAddressId')]"
               },
               "subnet": {
                 "id": "[parameters('subnetRef')]"
@@ -214,6 +213,21 @@
             }
           }
         ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[resourceGroup().name]",
+      "location": "[variables('location')]",
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "tags": {
+        "displayName": "OpenShiftMasterIP"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "dnsSettings": {
+          "domainNameLabel": "[resourceGroup().name]"
+        }
       }
     }
   ],

@@ -465,8 +465,6 @@
     },
     "tenantId": "[subscription().tenantId]",
     "bastionVMSize": "Standard_DS1_v2",
-    "masterPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', resourceGroup().name)]",
-    "infraPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('WildcardZone'))]",
     "StorageAccountPersistentVolume": "[concat('sapv', resourceGroup().name)]",
     "StorageAccountLoggingMetricsVolumes": "[concat('sapvlm', resourceGroup().name)]",
     "registryStorageName": "[concat('sareg', resourceGroup().name)]",
@@ -739,9 +737,6 @@
           },
           "availabilitySet": {
             "value": "['masteravailabilityset']"
-          },
-          "pipName": {
-            "value": "[variables('masterPublicIpAddressId')]"
           }
         }
       }
@@ -791,8 +786,8 @@
           "availabilitySet": {
             "value": "['infranodeavailabilityset']"
           },
-          "pipName": {
-            "value": "[variables('infraPublicIpAddressId')]"
+          "wildcardZone": {
+            "value": "[parameters('WildcardZone')]"
           }
         }
       }
@@ -848,41 +843,11 @@
       "properties": {}
     },
     {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[parameters('WildcardZone')]",
-      "location": "[variables('location')]",
-      "apiVersion": "[variables('apiVersionNetwork')]",
-      "tags": {
-        "displayName": "OpenShiftInfraPublicIP"
-      },
-      "properties": {
-        "publicIPAllocationMethod": "Static",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('WildcardZone')]"
-        }
-      }
-    },
-    {
       "type": "Microsoft.Compute/availabilitySets",
       "name": "nodeavailabilityset",
       "location": "[variables('location')]",
       "apiVersion": "[variables('apiVersionCompute')]",
       "properties": {}
-    },
-    {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[resourceGroup().name]",
-      "location": "[variables('location')]",
-      "apiVersion": "[variables('apiVersionNetwork')]",
-      "tags": {
-        "displayName": "OpenShiftMasterIP"
-      },
-      "properties": {
-        "publicIPAllocationMethod": "Static",
-        "dnsSettings": {
-          "domainNameLabel": "[resourceGroup().name]"
-        }
-      }
     }
   ],
   "outputs": {

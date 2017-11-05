@@ -38,13 +38,15 @@
     "availabilitySet": {
       "type": "string"
     },
-    "pipName": {
+    "wildcardZone": {
       "type": "string"
     }
   },
   "variables": {
     "apiVersion": "2015-06-15",
-    "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]"
+    "apiVersionNetwork": "2016-03-30",
+    "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
+    "infraPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('wildcardZone'))]"
   },
   "resources": [
     {
@@ -56,7 +58,7 @@
         "displayName": "NetworkInterface"
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', parameters('WildcardZone'))]",
+        "[concat('Microsoft.Network/publicIPAddresses/', parameters('wildcardZone'))]",
         "[concat('Microsoft.Network/networkSecurityGroups/', concat(parameters('vmName'), 'nsg'))]"
       ],
       "properties": {
@@ -66,10 +68,10 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "publicIPAddress": {
-                "id": "[parameters('pipName')]"
+                "id": "[variables('infraPublicIpAddressId')]"
               },
               "subnet": {
-                "id": "[parameters('subnetRef')]"
+                "id": "[variables('infraPublicIpAddressId')]"
               }
             }
           }
@@ -218,6 +220,21 @@
             }
           }
         ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[parameters('wildcardZone')]",
+      "location": "[variables('location')]",
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "tags": {
+        "displayName": "OpenShiftInfraPublicIP"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('wildcardZone')]"
+        }
       }
     }
   ],
