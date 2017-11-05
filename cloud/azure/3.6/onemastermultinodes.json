@@ -551,6 +551,36 @@
       }
     },
     {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[resourceGroup().name]",
+      "location": "[variables('location')]",
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "tags": {
+        "displayName": "OpenShiftMasterIP"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "dnsSettings": {
+          "domainNameLabel": "[resourceGroup().name]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[parameters('wildcardZone')]",
+      "location": "[variables('location')]",
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "tags": {
+        "displayName": "OpenShiftInfraPublicIP"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('wildcardZone')]"
+        }
+      }
+    },
+    {
       "name": "[concat('nodeSet', copyindex())]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2015-01-01",
@@ -646,7 +676,7 @@
             "value": "[variables('baseTemplateUrl')]"
           },
           "routerExtIP": {
-            "value": "[reference(concat('Microsoft.Network/publicIPAddresses/', parameters('wildcardZone')), variables('apiVersionNetwork') ).ipAddress]"
+            "value": "[reference(parameters('WildcardZone')).ipAddress]"
           },
           "imageReference": {
             "value": "[variables(parameters('image'))]"
@@ -855,13 +885,13 @@
       "type": "string",
       "value": "[concat('ssh -A ', reference('bastion').outputs.fqdn.value)]"
     },
-    "WebConsole URL": {
+    "Openshift Webconsole": {
       "type": "string",
-      "value": "[reference('master1').outputs.OpenshiftWebconsoleURL.value]"
+      "value": "[concat('https://', reference(resourceGroup().name).dnsSettings.fqdn, ':8443/console')]"
     },
-    "Router Public IP": {
+    "Openshift Router Public IP": {
       "type": "string",
-      "value": "[reference('infranode1').outputs.RouterPublicIp.value]"
+      "value": "[reference(parameters('WildcardZone')).ipAddress]"
     }
   }
 }

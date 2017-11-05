@@ -222,27 +222,7 @@
           }
         ]
       }
-    },
-    {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[parameters('wildcardZone')]",
-      "location": "[variables('location')]",
-      "apiVersion": "[variables('apiVersionNetwork')]",
-      "tags": {
-        "displayName": "OpenShiftInfraPublicIP"
-      },
-      "properties": {
-        "publicIPAllocationMethod": "Static",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('wildcardZone')]"
-        }
-      }
     }
   ],
-  "outputs": {
-    "RouterPublicIp": {
-      "type": "string",
-      "value": "[reference(concat('Microsoft.Network/publicIPAddresses/', parameters('wildcardZone')), variables('apiVersionNetwork') ).ipAddress]"
-    }
-  }
+  "outputs": {}
 }

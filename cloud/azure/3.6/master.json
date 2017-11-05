@@ -215,27 +215,7 @@
           }
         ]
       }
-    },
-    {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[resourceGroup().name]",
-      "location": "[variables('location')]",
-      "apiVersion": "[variables('apiVersionNetwork')]",
-      "tags": {
-        "displayName": "OpenShiftMasterIP"
-      },
-      "properties": {
-        "publicIPAllocationMethod": "Static",
-        "dnsSettings": {
-          "domainNameLabel": "[resourceGroup().name]"
-        }
-      }
     }
   ],
-  "outputs": {
-    "OpenshiftWebconsoleURL": {
-      "type": "string",
-      "value": "[concat('https://',reference(concat('Microsoft.Network/publicIPAddresses/', resourceGroup().name), variables('apiVersionNetwork')).dnsSettings.fqdn,':8443/console')]"
-    }
-  }
+  "outputs": {}
 }
