@@ -646,7 +646,7 @@
             "value": "[variables('baseTemplateUrl')]"
           },
           "routerExtIP": {
-            "value": "[reference(parameters('WildcardZone')).ipAddress]"
+            "value": ""
           },
           "imageReference": {
             "value": "[variables(parameters('image'))]"

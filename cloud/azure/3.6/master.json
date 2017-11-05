@@ -231,5 +231,10 @@
       }
     }
   ],
-  "outputs": {}
+  "outputs": {
+    "Openshift Webconsole": {
+      "type": "string",
+      "value": "[concat('https://', reference(resourceGroup().name).dnsSettings.fqdn, ':8443/console')]"
+    }
+  }
 }
