@@ -51,6 +51,7 @@
   "variables": {
     "apiVersion": "2015-06-15",
     "apiVersionNetwork": "2016-03-30",
+    "location": "[resourceGroup().location]",
     "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
     "masterPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', resourceGroup().name)]"
   },
