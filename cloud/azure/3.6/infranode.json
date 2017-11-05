@@ -59,7 +59,6 @@
         "displayName": "NetworkInterface"
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', parameters('wildcardZone'))]",
         "[concat('Microsoft.Network/networkSecurityGroups/', concat(parameters('vmName'), 'nsg'))]"
       ],
       "properties": {
