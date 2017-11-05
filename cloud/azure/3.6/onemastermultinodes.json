@@ -606,7 +606,9 @@
       "dependsOn": [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('masterStorageName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('registryStorageName'))]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('registryStorageName'))]",
+        "[concat('Microsoft.Network/publicIPAddresses/', resourceGroup().name)]",
+        "[concat('Microsoft.Network/publicIPAddresses/', parameters('WildcardZone'))]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -646,7 +648,7 @@
             "value": "[variables('baseTemplateUrl')]"
           },
           "routerExtIP": {
-            "value": ""
+            "value": "[reference(concat('Microsoft.Network/publicIPAddresses/', parameters('WildcardZone'))).ipAddress]"
           },
           "imageReference": {
             "value": "[variables(parameters('image'))]"
@@ -854,6 +856,14 @@
     "Bastion ssh": {
       "type": "string",
       "value": "[concat('ssh -A ', reference('bastion').outputs.fqdn.value)]"
+    },
+    "WebConsole URL": {
+      "type": "string",
+      "value": "[reference('master1').outputs.OpenshiftWebconsoleURL.value]"
+    },
+    "Router Public IP": {
+      "type": "string",
+      "value": "[reference('infranode1').outputs.RouterPublicIp.value]"
     }
   }
 }
