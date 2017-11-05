@@ -239,11 +239,10 @@
       }
     }
   ],
-  //FIXME: extract the value from the object
   "outputs": {
     "RouterPublicIp": {
       "type": "string",
-      "value": "Refer Console - actual object outputs will come soon"
+      "value": "[reference(concat('Microsoft.Network/publicIPAddresses/', parameters('wildcardZone')), variables('apiVersionNetwork') ).ipAddress]"
     }
   }
 }

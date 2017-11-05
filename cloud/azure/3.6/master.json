@@ -232,11 +232,10 @@
       }
     }
   ],
-  //FIXME: extract the value from the object
   "outputs": {
     "OpenshiftWebconsoleURL": {
       "type": "string",
-      "value": "Check the Console, coming soon"
+      "value": "[concat('https://',reference(concat('Microsoft.Network/publicIPAddresses/', resourceGroup().name), variables('apiVersionNetwork')).dnsSettings.fqdn,':8443/console')]"
     }
   }
 }
