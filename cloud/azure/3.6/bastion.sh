@@ -116,12 +116,8 @@ chmod 600 /root/.ssh/authorized_keys
 sleep 30
 echo "${RESOURCEGROUP} Bastion Host is starting software update" 
 # Continue Setting Up Bastion
-yum -y install epel-release
-yum -y update
-yum -y install ansible  pyOpenSSL python-lxml unzip wget git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img jq
-mkdir -p /usr/share/ansible/openshift-ansible && wget -qO- https://github.com/openshift/openshift-ansible/archive/openshift-ansible-3.6.173.0.65-1.tar.gz | tar -zx --strip-components=1 -C /usr/share/ansible/openshift-ansible
-wget -qO- https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz | tar xvz --strip-components=1 -C /usr/bin
-chmod 755 /usr/bin/oc
+yum -y install epel-release centos-release-openshift-origin
+yum -y install atomic-openshift-utils bash-completion bind-utils bridge-utils git iptables-services jq net-tools nodejs origin-clients qemu-img unzip wget
 touch /root/.updateok
 
 # Create azure.conf file
@@ -293,19 +289,14 @@ cat <<EOF >> /home/${AUSERNAME}/prereq.yml
   tasks:
   - name: Install EPEL Release Repo
     yum: name=epel-release state=latest
+  - name: Install CentOS OpenShift Origin Release Repo
+    yum: name=centos-release-openshift-origin
   - name: install the latest version of PyYAML
     yum: name=PyYAML state=latest
   - name: Update all hosts
     yum: name="*" state=latest
-  - name: Install OpenShift CLI
-    unarchive:
-      src: "https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz"
-      dest: /usr/bin
-      remote_src: yes
-      mode: 0755
-      keep_newer: yes
-      creates: /usr/bin/oc
-      extra_opts: "--strip-components=1"
+  - name: Install OpenShift Origin Clients
+    yum: name=origin-clients state=latest
   - name: Install the docker
     yum: name=docker state=latest
   - name: Start Docker
@@ -964,7 +955,7 @@ host_key_checking = False
 forks=30
 gather_timeout=60
 timeout=240
-library = /usr/share/ansible/openshift-ansible/library
+library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
@@ -979,7 +970,7 @@ host_key_checking = False
 forks=30
 gather_timeout=60
 timeout=240
-library = /usr/share/ansible/openshift-ansible/library
+library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
