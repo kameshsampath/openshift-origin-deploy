@@ -739,6 +739,9 @@
           },
           "availabilitySet": {
             "value": "['masteravailabilityset']"
+          },
+          "pipName": {
+            "value": "[variables('masterPublicIpAddressId')]"
           }
         }
       }
@@ -787,6 +790,9 @@
           },
           "availabilitySet": {
             "value": "['infranodeavailabilityset']"
+          },
+          "pipName": {
+            "value": "[variables('infraPublicIpAddressId')]"
           }
         }
       }

@@ -37,6 +37,9 @@
     },
     "availabilitySet": {
       "type": "string"
+    },
+    "pipName": {
+      "type": "string"
     }
   },
   "variables": {
@@ -63,7 +66,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "publicIPAddress": {
-                "id": "[variables('infraPublicIpAddressId')]"
+                "id": "[parameters('pipName')]"
               },
               "subnet": {
                 "id": "[parameters('subnetRef')]"

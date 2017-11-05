@@ -46,6 +46,9 @@
       "metadata": {
         "description": "availabilityset"
       }
+    },
+    "pipName": {
+      "type": "string"
     }
   },
   "variables": {
@@ -72,7 +75,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "publicIPAddress": {
-                "id": "[variables('masterPublicIpAddressId')]"
+                "id": "[parameters('pipName')]"
               },
               "subnet": {
                 "id": "[parameters('subnetRef')]"
