@@ -606,9 +606,7 @@
       "dependsOn": [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('masterStorageName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('registryStorageName'))]",
-        "[concat('Microsoft.Network/publicIPAddresses/', resourceGroup().name)]",
-        "[concat('Microsoft.Network/publicIPAddresses/', parameters('WildcardZone'))]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('registryStorageName'))]"
       ],
       "properties": {
         "mode": "Incremental",
