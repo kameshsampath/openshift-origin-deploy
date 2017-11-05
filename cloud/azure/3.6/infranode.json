@@ -72,7 +72,7 @@
                 "id": "[variables('infraPublicIpAddressId')]"
               },
               "subnet": {
-                "id": "[variables('infraPublicIpAddressId')]"
+                "id": "[parameters('subnetRef')]"
               }
             }
           }
