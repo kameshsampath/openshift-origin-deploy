@@ -646,7 +646,7 @@
             "value": "[variables('baseTemplateUrl')]"
           },
           "routerExtIP": {
-            "value": "[reference(concat('Microsoft.Network/publicIPAddresses/',variables('apiVersionNetwork')), parameters('WildcardZone'))).ipAddress]"
+            "value": "[reference(concat('Microsoft.Network/publicIPAddresses/', parameters('wildcardZone')), variables('apiVersionNetwork') ).ipAddress]"
           },
           "imageReference": {
             "value": "[variables(parameters('image'))]"
