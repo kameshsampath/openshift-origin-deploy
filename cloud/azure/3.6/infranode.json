@@ -238,10 +238,11 @@
       }
     }
   ],
+  //FIXME: extract the value from the object
   "outputs": {
-    "Openshift Router Public IP": {
+    "RouterPublicIp": {
       "type": "string",
-      "value": "[reference(parameters('WildcardZone')).ipAddress]"
+      "value": "Refer Console - actual object outputs will come soon"
     }
   }
 }
