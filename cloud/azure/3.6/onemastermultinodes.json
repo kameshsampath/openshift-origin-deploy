@@ -465,21 +465,8 @@
     },
     "tenantId": "[subscription().tenantId]",
     "bastionVMSize": "Standard_DS1_v2",
-    "masterLoadBalancerName": "[concat('MasterLb',resourceGroup().name)]",
     "masterPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', resourceGroup().name)]",
-    "masterLbId": "[resourceId('Microsoft.Network/loadBalancers', variables('masterLoadBalancerName'))]",
-    "masterLbFrontEndConfigId": "[concat(variables('masterLbId'), '/frontendIPConfigurations/loadBalancerFrontEnd')]",
-    "masterLbBackendPoolId": "[concat(variables('masterLbId'),'/backendAddressPools/loadBalancerBackend')]",
-    "masterLbHttpProbeId": "[concat(variables('masterLbId'),'/probes/httpProbe')]",
-    "masterLb8443ProbeId": "[concat(variables('masterLbId'),'/probes/8443Probe')]",
-    "infraLoadBalancerName": "[concat(parameters('WildcardZone'), 'lb')]",
     "infraPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('WildcardZone'))]",
-    "infraLbId": "[resourceId('Microsoft.Network/loadBalancers', variables('infraLoadBalancerName'))]",
-    "infraLbFrontEndConfigId": "[concat(variables('infraLbId'), '/frontendIPConfigurations/loadBalancerFrontEnd')]",
-    "infraLbBackendPoolId": "[concat(variables('infraLbId'),'/backendAddressPools/loadBalancerBackend')]",
-    "infraLbHttpProbeId": "[concat(variables('infraLbId'),'/probes/httpProbe')]",
-    "infraLbHttpsProbeId": "[concat(variables('infraLbId'),'/probes/httpsProbe')]",
-    "infraLbCockpitProbeId": "[concat(variables('infraLbId'),'/probes/cockpitProbe')]",
     "StorageAccountPersistentVolume": "[concat('sapv', resourceGroup().name)]",
     "StorageAccountLoggingMetricsVolumes": "[concat('sapvlm', resourceGroup().name)]",
     "registryStorageName": "[concat('sareg', resourceGroup().name)]",
@@ -750,9 +737,6 @@
           "sshPrivateData": {
             "value": "[parameters('sshPrivateData')]"
           },
-          "masterLoadBalancerName": {
-            "value": "[variables('masterLoadBalancerName')]"
-          },
           "availabilitySet": {
             "value": "['masteravailabilityset']"
           }
@@ -800,9 +784,6 @@
           },
           "dnsName": {
             "value": "[concat(resourceGroup().name,'i1')]"
-          },
-          "LoadBalancerName": {
-            "value": "[variables('infraLoadBalancerName')]"
           },
           "availabilitySet": {
             "value": "['infranodeavailabilityset']"
@@ -866,7 +847,7 @@
       "location": "[variables('location')]",
       "apiVersion": "[variables('apiVersionNetwork')]",
       "tags": {
-        "displayName": "OpenShiftInfraLBPublicIP"
+        "displayName": "OpenShiftInfraPublicIP"
       },
       "properties": {
         "publicIPAllocationMethod": "Static",
@@ -888,159 +869,13 @@
       "location": "[variables('location')]",
       "apiVersion": "[variables('apiVersionNetwork')]",
       "tags": {
-        "displayName": "OpenShiftMasterPublicIP"
+        "displayName": "OpenShiftMasterIP"
       },
       "properties": {
         "publicIPAllocationMethod": "Static",
         "dnsSettings": {
           "domainNameLabel": "[resourceGroup().name]"
         }
-      }
-    },
-    {
-      "type": "Microsoft.Network/loadBalancers",
-      "name": "[variables('masterLoadBalancerName')]",
-      "location": "[variables('location')]",
-      "apiVersion": "[variables('apiVersionNetwork')]",
-      "tags": {
-        "displayName": "OpenShiftMasterLB"
-      },
-      "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', resourceGroup().name)]"
-      ],
-      "properties": {
-        "frontendIPConfigurations": [
-          {
-            "name": "LoadBalancerFrontEnd",
-            "properties": {
-              "publicIPAddress": {
-                "id": "[variables('masterPublicIpAddressId')]"
-              }
-            }
-          }
-        ],
-        "backendAddressPools": [
-          {
-            "name": "loadBalancerBackEnd"
-          }
-        ],
-        "loadBalancingRules": [
-          {
-            "name": "OpenShiftAdminConsole",
-            "properties": {
-              "frontendIPConfiguration": {
-                "id": "[variables('masterLbFrontEndConfigId')]"
-              },
-              "backendAddressPool": {
-                "id": "[variables('masterLbBackendPoolId')]"
-              },
-              "protocol": "Tcp",
-              "loadDistribution": "SourceIP",
-              "idleTimeoutInMinutes": 30,
-              "frontendPort": 8443,
-              "backendPort": 8443,
-              "probe": {
-                "id": "[variables('masterLb8443ProbeId')]"
-              }
-            }
-          }
-        ],
-        "probes": [
-          {
-            "name": "8443Probe",
-            "properties": {
-              "protocol": "Tcp",
-              "port": 8443,
-              "intervalInSeconds": 5,
-              "numberOfProbes": 2
-            }
-          }
-        ]
-      }
-    },
-    {
-      "type": "Microsoft.Network/loadBalancers",
-      "name": "[variables('infraLoadBalancerName')]",
-      "location": "[variables('location')]",
-      "apiVersion": "[variables('apiVersionNetwork')]",
-      "tags": {
-        "displayName": "OpenShiftMasterLB"
-      },
-      "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', parameters('WildcardZone'))]"
-      ],
-      "properties": {
-        "frontendIPConfigurations": [
-          {
-            "name": "LoadBalancerFrontEnd",
-            "properties": {
-              "publicIPAddress": {
-                "id": "[variables('infraPublicIpAddressId')]"
-              }
-            }
-          }
-        ],
-        "backendAddressPools": [
-          {
-            "name": "loadBalancerBackEnd"
-          }
-        ],
-        "loadBalancingRules": [
-          {
-            "name": "OpenShiftRouterHTTP",
-            "properties": {
-              "frontendIPConfiguration": {
-                "id": "[variables('infraLbFrontEndConfigId')]"
-              },
-              "backendAddressPool": {
-                "id": "[variables('infraLbBackendPoolId')]"
-              },
-              "protocol": "Tcp",
-              "frontendPort": 80,
-              "backendPort": 80,
-              "probe": {
-                "id": "[variables('infraLbHttpProbeId')]"
-              }
-            }
-          },
-          {
-            "name": "OpenShiftRouterHTTPS",
-            "properties": {
-              "frontendIPConfiguration": {
-                "id": "[variables('infraLbFrontEndConfigId')]"
-              },
-              "backendAddressPool": {
-                "id": "[variables('infraLbBackendPoolId')]"
-              },
-              "protocol": "Tcp",
-              "frontendPort": 443,
-              "backendPort": 443,
-              "probe": {
-                "id": "[variables('infraLbHttpsProbeId')]"
-              }
-            }
-          }
-        ],
-        "probes": [
-          {
-            "name": "httpProbe",
-            "properties": {
-              "protocol": "Tcp",
-              "port": 80,
-              "intervalInSeconds": 5,
-              "numberOfProbes": 2
-            }
-          },
-          {
-            "name": "httpsProbe",
-            "properties": {
-              "protocol": "Tcp",
-              "port": 443,
-              "intervalInSeconds": 5,
-              "numberOfProbes": 2
-            }
-          }
-        ]
       }
     }
   ],

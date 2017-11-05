@@ -119,7 +119,7 @@ echo "${RESOURCEGROUP} Bastion Host is starting software update"
 yum -y install epel-release
 yum -y update
 yum -y install ansible  pyOpenSSL python-lxml unzip wget git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img jq
-mkdir -p /usr/share/ansible/openshift-ansible && git clone -b release-3.6 https://github.com/openshift/openshift-ansible /usr/share/ansible/openshift-ansible
+mkdir -p /usr/share/ansible/openshift-ansible && wget -qO- https://github.com/openshift/openshift-ansible/archive/openshift-ansible-3.6.173.0.65-1.tar.gz | tar -zx --strip-components=1 -C /usr/share/ansible/openshift-ansible
 wget -qO- https://github.com/openshift/origin/releases/download/v3.6.1/openshift-origin-client-tools-v3.6.1-008f2d5-linux-64bit.tar.gz | tar xvz --strip-components=1 -C /usr/bin
 chmod 755 /usr/bin/oc
 touch /root/.updateok
@@ -184,7 +184,6 @@ masters
 nodes
 etcd
 new_nodes
-new_masters
 
 [OSEv3:vars]
 osm_controller_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
@@ -230,12 +229,6 @@ osm_default_subdomain=${WILDCARDNIP}
 openshift_use_dnsmasq=true
 openshift_public_hostname=${RESOURCEGROUP}.${FULLDOMAIN}
 
-os_sdn_network_plugin_name=redhat/openshift-ovs-subnet
-
-openshift_master_cluster_method=native
-openshift_master_cluster_hostname=${RESOURCEGROUP}.${FULLDOMAIN}
-openshift_master_cluster_public_hostname=${RESOURCEGROUP}.${FULLDOMAIN}
-
 # Do not install metrics but post install
 openshift_metrics_install_metrics=false
 # openshift_metrics_cassandra_storage_type=pv
@@ -272,7 +265,6 @@ master1 openshift_hostname=master1 openshift_node_labels="{'role': 'master'}"
 master1
 
 [new_nodes]
-[new_masters]
 
 [nodes]
 master1 openshift_hostname=master1 openshift_node_labels="{'role':'master','zone':'default','logging':'true'}" openshift_schedulable=false
@@ -562,7 +554,7 @@ set -eo pipefail
 
 usage(){
   echo "$0 [-t node|master|infranode] [-u username] [-p /path/to/publicsshkey] [-s vmsize] [-d extradisksize (in G)] [-d extradisksize] [-d...]"
-  echo "  -t|--type           node, master or infranode"
+  echo "  -t|--type           node"
   echo "                      If not specified: node"
   echo "  -u|--user           regular user to be created on the host"
   echo "                      If not specified: Current user"
@@ -571,8 +563,6 @@ usage(){
   echo "  -s|--size           VM size"
   echo "                      If not specified:"
   echo "                        * Standard_DS12_v2 for nodes"
-  echo "                        * Standard_DS12_v2 for infra nodes"
-  echo "                        * Standard_DS3_v2 for masters"
   echo "  -d|--disk           Extra disk size in GB (it can be repeated a few times)"
   echo "                      If not specified: 2x128GB"
   echo "Examples:"
@@ -657,38 +647,6 @@ create_nsg_azure()
     --location ${LOCATION} \
     --tags "displayName=NetworkSecurityGroup" >/dev/null
 }
-
-create_nsg_rules_master_azure()
-{
-  echo "Creating the NGS rules for a master host..."
-  azure network nsg rule create \
-    --resource-group ${RESOURCEGROUP} \
-    --nsg-name ${VMNAME}nsg \
-    --destination-port-range ${APIPORT} \
-    --protocol tcp \
-    --name default-allow-openshift-master \
-    --priority 2000 >/dev/null
-}
-
-create_nsg_rules_infranode_azure()
-{
-  echo "Creating the NGS rules for an infranode..."
-  azure network nsg rule create \
-    --resource-group ${RESOURCEGROUP} \
-    --nsg-name ${VMNAME}nsg \
-    --destination-port-range ${HTTP} \
-    --protocol tcp \
-    --name default-allow-openshift-router-http \
-    --priority 1000 >/dev/null
-  azure network nsg rule create \
-    --resource-group ${RESOURCEGROUP} \
-    --nsg-name ${VMNAME}nsg \
-    --destination-port-range ${HTTPS} \
-    --protocol tcp \
-    --name default-allow-openshift-router-https \
-    --priority 2000 >/dev/null
-}
-
 attach_nsg_azure()
 {
   echo "Attaching NGS rules to a NSG..."
@@ -698,49 +656,12 @@ attach_nsg_azure()
     --network-security-group-name ${VMNAME}nsg >/dev/null
 }
 
-attach_nic_lb_azure()
-{
-  echo "Attaching VM NIC to a LB..."
-  BACKEND="loadBalancerBackEnd"
-  azure network nic ip-config set \
-    --resource-group ${RESOURCEGROUP} \
-    --nic-name ${VMNAME}nic \
-    --name ${IPCONFIG} \
-    --lb-address-pool-ids "/subscriptions/${SUBSCRIPTION}/resourceGroups/${RESOURCEGROUP}/providers/Microsoft.Network/loadBalancers/${LB}/backendAddressPools/${BACKEND}" >/dev/null
-}
-
 create_node_azure()
 {
   common_azure
   export SUBNET="nodeSubnet"
   export SA="sanod${RESOURCEGROUP}"
   create_host_azure
-}
-
-create_master_azure()
-{
-  common_azure
-  export SUBNET="masterSubnet"
-  export SA="samas${RESOURCEGROUP}"
-  export LB="MasterLb${RESOURCEGROUP}"
-  create_host_azure
-  create_nsg_azure
-  create_nsg_rules_master_azure
-  attach_nsg_azure
-  attach_nic_lb_azure
-}
-
-create_infranode_azure()
-{
-  common_azure
-  export SUBNET="infranodeSubnet"
-  export SA="sanod${RESOURCEGROUP}"
-  export LB=$(azure network lb list ${RESOURCEGROUP} --json | jq -r '.[].name' | grep -v "MasterLb")
-  create_host_azure
-  create_nsg_azure
-  create_nsg_rules_infranode_azure
-  attach_nsg_azure
-  attach_nic_lb_azure
 }
 
 common_azure()
@@ -761,15 +682,6 @@ common_azure()
   export SUBSCRIPTION=$(azure account list --json | jq -r '.[0].id')
 }
 
-BZ1469358()
-{
-  # https://bugzilla.redhat.com/show_bug.cgi?id=1469358
-  echo "Workaround for BZ1469358..."
-  ansible master1 -b -m fetch -a "src=/etc/origin/master/ca.serial.txt dest=/tmp/ca.serial.txt  flat=true" >/dev/null
-  ansible masters -b -m copy -a "src=/tmp/ca.serial.txt dest=/etc/origin/master/ca.serial.txt mode=644 owner=root" >/dev/null
-  ansible localhost -b -m file -a "path=/tmp/ca.serial.txt state=absent" >/dev/null
-}
-
 add_node_openshift(){
   echo "Adding the new node to the ansible inventory..."
   sudo sed -i "/\[new_nodes\]/a ${VMNAME} openshift_hostname=${VMNAME} openshift_node_labels=\"{'role':'${ROLE}','zone':'default','logging':'true'}\"" /etc/ansible/hosts
@@ -784,39 +696,6 @@ add_node_openshift(){
   echo "Adding the node to the ansible inventory..."
   sudo sed -i "/^${VMNAME}.*/d" /etc/ansible/hosts
   sudo sed -i "/\[nodes\]/a ${VMNAME} openshift_hostname=${VMNAME} openshift_node_labels=\"{'role':'${ROLE}','zone':'default','logging':'true'}\"" /etc/ansible/hosts
-}
-
-add_master_openshift(){
-  echo "Adding the new master to the ansible inventory..."
-  sudo sed -i "/\[new_nodes\]/a ${VMNAME} openshift_hostname=${VMNAME} openshift_node_labels=\"{'role':'${ROLE}','zone':'default','logging':'true'}\" openshift_schedulable=false" /etc/ansible/hosts
-  sudo sed -i "/\[new_masters\]/a ${VMNAME} openshift_hostname=${VMNAME} openshift_node_labels=\"{'role':'${ROLE}','zone':'default','logging':'true'}\"" /etc/ansible/hosts
-  echo "Preparing the host..."
-  ansible new_masters -m shell -a "curl -s ${GITURL}master.sh | bash -x"
-  # Copy ssh files as master.sh does
-  ansible master1 -m fetch -a "src=/home/${USER}/.ssh/id_rsa.pub dest=/tmp/key.pub flat=true" >/dev/null
-  ansible master1 -m fetch -a "src=/home/${USER}/.ssh/id_rsa dest=/tmp/key flat=true" >/dev/null
-  # User
-  ansible new_masters -m copy -a "src=/tmp/key.pub dest=/home/${ADMIN}/.ssh/id_rsa.pub mode=600  owner=${ADMIN}" >/dev/null
-  ansible new_masters -m copy -a "src=/tmp/key dest=/home/${ADMIN}/.ssh/id_rsa mode=600  owner=${ADMIN}" >/dev/null
-  # Root
-  ansible new_masters -b -m copy -a "src=/tmp/key.pub dest=/root/.ssh/id_rsa.pub mode=600 owner=root" >/dev/null
-  ansible new_masters -b -m copy -a "src=/tmp/key dest=/root/.ssh/id_rsa mode=600 owner=root" >/dev/null
-  # Cleanup
-  ansible localhost -b -m file -a "path=/tmp/key state=absent" >/dev/null
-  ansible localhost -b -m file -a "path=/tmp/key.pub state=absent" >/dev/null
-  export ANSIBLE_HOST_KEY_CHECKING=False
-  ansible-playbook -l new_masters /home/${USER}/prereq.yml
-  ansible-playbook -l new_masters -e@vars.yml /home/${USER}/azure-config.yml
-  echo "Scaling up the master..."
-  ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-master/scaleup.yml
-  echo "Copying htpasswd..."
-  ansible master1 -m fetch -a "src=/etc/origin/master/htpasswd dest=/tmp/htpasswd flat=true" >/dev/null
-  ansible new_masters -b -m copy -a "src=/tmp/htpasswd dest=/etc/origin/master/htpasswd mode=600  owner=root" >/dev/null
-  ansible localhost -m file -a "path=/tmp/htpasswd state=absent" >/dev/null
-  echo "Adding the master to the ansible inventory..."
-  sudo sed -i "/^${VMNAME}.*/d" /etc/ansible/hosts
-  sudo sed -i "/\[masters\]/a ${VMNAME} openshift_hostname=${VMNAME} openshift_node_labels=\"{'role': '${ROLE}'}\"" /etc/ansible/hosts
-  sudo sed -i "/\[nodes\]/a ${VMNAME} openshift_hostname=${VMNAME} openshift_node_labels=\"{'role':'${ROLE}','zone':'default','logging':'true'}\" openshift_schedulable=false" /etc/ansible/hosts
 }
 
 # Default values
@@ -887,7 +766,6 @@ export DISKS=("${DISKS[@]:-${DEFDISKS[@]}}")
 
 azure telemetry --disable 1>/dev/null
 login_azure
-BZ1469358
 
 case "$TYPE" in
   'node')
@@ -899,30 +777,7 @@ case "$TYPE" in
     echo "Adding the node to Origin..."
     add_node_openshift
     ;;
-  'infranode')
-    # INFRANODE
-    export VMSIZE=${VMSIZE:-$DEFVMSIZEINFRANODE}
-    export ROLE="infra"
-    echo "Creating a new infranode..."
-    create_infranode_azure
-    echo "Adding the node to Origin..."
-    add_node_openshift
-    ;;
-  'master')
-    # MASTER
-    export VMSIZE=${VMSIZE:-$DEFVMSIZEMASTER}
-    export ROLE="master"
-    echo "Creating a new master..."
-    create_master_azure
-    echo "Adding the master to Origin..."
-    add_master_openshift
-    ;;
-  *)
-    echo "Wrong argument"
-    ;;
 esac
-
-BZ1469358
 
 echo "Done"
 EOF
