@@ -117,6 +117,7 @@ sleep 30
 echo "${RESOURCEGROUP} Bastion Host is starting software update" 
 # Continue Setting Up Bastion
 yum -y install epel-release centos-release-openshift-origin
+yum -y update
 yum -y install atomic-openshift-utils bash-completion bind-utils bridge-utils git iptables-services jq net-tools nodejs origin-clients qemu-img unzip wget
 # rm  -rf /usr/share/ansible/openshift-ansible && git clone https://github.com/openshift-ansible /usr/share/ansible/openshift-ansible
 touch /root/.updateok
@@ -809,6 +810,18 @@ EOF
 cat <<EOF > /home/${AUSERNAME}/openshift-install.sh
 export ANSIBLE_HOST_KEY_CHECKING=False
 sleep 120
+
+###  Setup and Enable Network Manager on all hosts before Start of Install ###
+DOMAIN=`domainname -d` 
+ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-node/network_manager.yml
+echo $(date) " - Setting up NetworkManager on eth0"
+ansible all -b -m service -a "name=NetworkManager state=restarted"
+sleep 10
+ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $DOMAIN"
+ansible all -b -m service -a "name=NetworkManager state=restarted"
+sleep 10
+### End setup Network Manager on all Hosts ###
+
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
 ansible-playbook  /home/${AUSERNAME}/prereq.yml
 ansible-playbook  /home/${AUSERNAME}/azure-config.yml
@@ -817,9 +830,6 @@ echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO"
 ansible-playbook  /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml < /dev/null
 
 wget http://master1:8443/api > healtcheck.out
-
-ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
-ansible all -b -m service -a "name=NetworkManager state=restarted"
 
 ansible-playbook /home/${AUSERNAME}/postinstall.yml
 cd /root
