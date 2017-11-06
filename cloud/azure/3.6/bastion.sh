@@ -118,8 +118,7 @@ echo "${RESOURCEGROUP} Bastion Host is starting software update"
 # Continue Setting Up Bastion
 yum -y install epel-release centos-release-openshift-origin
 yum -y update
-yum -y install ansible pyOpenSSL python-lxml bash-completion bind-utils bridge-utils git iptables-services jq net-tools nodejs origin-clients qemu-img unzip wget
-mkdir -p /usr/share/ansible && git clone -b azure-rel-3.6 https://github.com/kameshsampath/openshift-ansible /usr/share/ansible/openshift-ansible
+yum -y install atomic-openshift-utils bash-completion bind-utils bridge-utils git iptables-services jq net-tools nodejs origin-clients qemu-img unzip wget
 touch /root/.updateok
 
 # Create azure.conf file
@@ -964,7 +963,7 @@ host_key_checking = False
 forks=30
 gather_timeout=60
 timeout=240
-library = /usr/share/ansible/openshift-ansible/library
+library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
@@ -979,7 +978,7 @@ host_key_checking = False
 forks=30
 gather_timeout=60
 timeout=240
-library = /usr/share/ansible/openshift-ansible/library
+library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
