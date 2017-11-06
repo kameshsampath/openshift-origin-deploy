@@ -119,7 +119,7 @@ echo "${RESOURCEGROUP} Bastion Host is starting software update"
 yum -y install epel-release centos-release-openshift-origin
 yum -y update
 yum -y install atomic-openshift-utils bash-completion bind-utils bridge-utils git iptables-services jq net-tools nodejs origin-clients qemu-img unzip wget
-rm  -rf /usr/share/ansible/openshift-ansible && git clone -b azure-rel-3.6 https://github.com/openshift-ansible /usr/share/ansible/openshift-ansible
+rm  -rf /usr/share/ansible/openshift-ansible && git clone -b azure-rel-3.6 https://github.com/kameshsampath/openshift-ansible /usr/share/ansible/openshift-ansible
 touch /root/.updateok
 
 # Create azure.conf file
